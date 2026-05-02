@@ -62,6 +62,23 @@ let activeItemId = null;
 let importedShare = false;
 let activeCalendarMonth = 4;
 
+const bindTap = (element, handler, { stopPropagation = false } = {}) => {
+  let lastTouch = 0;
+  element.addEventListener("touchend", event => {
+    lastTouch = Date.now();
+    if (stopPropagation) event.stopPropagation();
+    event.preventDefault();
+    handler(event);
+  }, { passive:false });
+  element.addEventListener("click", event => {
+    if (Date.now() - lastTouch < 700) {
+      if (stopPropagation) event.stopPropagation();
+      return;
+    }
+    handler(event);
+  });
+};
+
 const validIds = () => new Set(offerings.map(item => item.id));
 
 const updateLocationCounts = () => {
@@ -328,16 +345,14 @@ const renderClassList = () => {
         setItemSelected(item, checkbox.checked);
         if (activeItemId === item.id) syncModalSelection(item);
       });
-      selectBtn.addEventListener("click", event => {
-        event.stopPropagation();
+      bindTap(selectBtn, event => {
         const shouldSelect = !selected.has(item.id);
         setItemSelected(item, shouldSelect);
         if (activeItemId === item.id) syncModalSelection(item);
-      });
-      detailsBtn.addEventListener("click", event => {
-        event.stopPropagation();
+      }, { stopPropagation:true });
+      bindTap(detailsBtn, () => {
         openModal(item);
-      });
+      }, { stopPropagation:true });
       card.addEventListener("click", event => {
         if (event.target.closest("input,button")) return;
         openModal(item);
@@ -393,10 +408,10 @@ const renderCalendar = () => {
         btn.className = `event ${event.category} ${event.selected ? "chosen" : "available"}`;
         btn.title = `${event.title}\n${fmtLongDate(event.start)} ${event.start.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})} - ${event.end.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
         btn.innerHTML = `${event.title}<small>${event.selected ? "Chosen" : "Available"} | ${event.start.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</small>`;
-        btn.addEventListener("click", () => {
+        bindTap(btn, () => {
           const item = getItemById(event.itemId);
           if (item) openModal(item);
-        });
+        }, { stopPropagation:true });
         cell.appendChild(btn);
       });
       if (dayEvents.length > 3) {
@@ -599,19 +614,26 @@ if (importedShare) setShareStatus("Loaded shared picks on this device.");
 document.getElementById("searchBox").addEventListener("input", renderAll);
 document.getElementById("areaFilter").addEventListener("change", renderAll);
 document.querySelectorAll(".view-btn").forEach(button => {
-  button.addEventListener("click", () => setPlannerView(button.dataset.view));
+  bindTap(button, () => setPlannerView(button.dataset.view));
 });
-document.getElementById("prevMonth").addEventListener("click", () => changeCalendarMonth(-1));
-document.getElementById("nextMonth").addEventListener("click", () => changeCalendarMonth(1));
-document.getElementById("sharePicks").addEventListener("click", sharePicks);
-document.getElementById("sharePicksSummary").addEventListener("click", sharePicks);
-document.getElementById("clearAll").addEventListener("click", () => { selected.clear(); saveState(); renderAll(); syncPicksToSheet("cleared"); });
-document.getElementById("modalClose").addEventListener("click", closeModal);
-document.getElementById("modalDone").addEventListener("click", closeModal);
-document.getElementById("eventModal").addEventListener("click", event => {
+bindTap(document.getElementById("prevMonth"), () => changeCalendarMonth(-1));
+bindTap(document.getElementById("nextMonth"), () => changeCalendarMonth(1));
+bindTap(document.getElementById("sharePicks"), sharePicks);
+bindTap(document.getElementById("sharePicksSummary"), sharePicks);
+bindTap(document.getElementById("clearAll"), () => { selected.clear(); saveState(); renderAll(); syncPicksToSheet("cleared"); });
+bindTap(document.getElementById("modalClose"), closeModal);
+bindTap(document.getElementById("modalDone"), closeModal);
+const eventModal = document.getElementById("eventModal");
+eventModal.addEventListener("click", event => {
   if (event.target.id === "eventModal") closeModal();
 });
-document.getElementById("modalToggle").addEventListener("click", () => {
+eventModal.addEventListener("touchend", event => {
+  if (event.target.id === "eventModal") {
+    event.preventDefault();
+    closeModal();
+  }
+}, { passive:false });
+bindTap(document.getElementById("modalToggle"), () => {
   const item = getItemById(activeItemId);
   if (!item) return;
   setItemSelected(item, !selected.has(item.id));
