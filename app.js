@@ -597,7 +597,10 @@ const selectedSnapshot = (action, changedItem) => {
 };
 
 const syncPicksToSheet = (action, changedItem = null) => {
-  if (!GOOGLE_SHEET_WEB_APP_URL) return;
+  if (!GOOGLE_SHEET_WEB_APP_URL) {
+    setShareStatus("Google Sheet is not connected yet.");
+    return false;
+  }
   const payload = selectedSnapshot(action, changedItem);
   const body = JSON.stringify(payload);
   try {
@@ -605,7 +608,7 @@ const syncPicksToSheet = (action, changedItem = null) => {
       const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
       if (navigator.sendBeacon(GOOGLE_SHEET_WEB_APP_URL, blob)) {
         setShareStatus("Google Sheet updated.");
-        return;
+        return true;
       }
     }
     fetch(GOOGLE_SHEET_WEB_APP_URL, {
@@ -615,8 +618,10 @@ const syncPicksToSheet = (action, changedItem = null) => {
       body
     });
     setShareStatus("Google Sheet update sent.");
+    return true;
   } catch {
     setShareStatus("Could not update Google Sheet from this device.");
+    return false;
   }
 };
 
@@ -632,10 +637,18 @@ const sharePicks = () => {
     setShareStatus("Pick at least one event first.");
     return alert("Pick at least one event first.");
   }
-  const subject = encodeURIComponent("Tifanii's hobby class picks");
-  const body = encodeURIComponent(buildEmailBody());
-  window.location.href = `mailto:${EMAIL_TO}?subject=${subject}&body=${body}`;
-  setShareStatus("Email draft opened with the sign-up checklist.");
+  const sent = syncPicksToSheet("sent");
+  if (sent) {
+    setShareStatus("Picks sent to the Google Sheet.");
+  } else {
+    const url = buildShareUrl();
+    try {
+      navigator.clipboard.writeText(url);
+      setShareStatus("Google Sheet is not connected yet. Picks link copied instead.");
+    } catch {
+      window.prompt("Google Sheet is not connected yet. Copy this picks link:", url);
+    }
+  }
 };
 
 const renderAll = () => {
