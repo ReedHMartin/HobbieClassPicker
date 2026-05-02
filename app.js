@@ -1,4 +1,4 @@
-const MONTHS = ["May 2026","June 2026","July 2026","August 2026","September 2026"];
+﻿const MONTHS = ["May 2026","June 2026","July 2026","August 2026","September 2026"];
 const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const DAY_TO_INDEX = {Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
 
@@ -18,43 +18,22 @@ const generateRecurringSessions = ({start,end,weekday,startTime,endTime}) => {
 };
 const explicitSessions = items => items.map(x => ({...x}));
 
-const offerings = [
-  { id:"adult-adirondack-chair", title:"Adult Adirondack Chair", group:"Woodworking", area:"Wildwood", category:"woodworking", age:"16+", location:"Wildwood Craft Room", instructor:"Don Jedlicka", description:"Build a top-quality full-size Adirondack chair in a five-week woodworking course.", fullDescription:"Anyone who's ever sat in an Adirondack chair and sunk into the curve of the fanned back knows there's not a more comfortable cushion-less seat out there. Now you can make your very own top-quality full size Adirondack chair. All skill levels welcome. You will have a completed chair on the last day of this five-week course!", residentFee:100, nonResidentFee:120, extraLabel:null, extraResident:0, extraNonResident:0, sessions:generateRecurringSessions({start:"2026-08-25",end:"2026-09-15",weekday:"Tue",startTime:"6:00 PM",endTime:"8:30 PM"}) },
-  { id:"cutting-board-workshop", title:"Cutting Board Workshop", group:"Woodworking", area:"Wildwood", category:"woodworking", age:"16+", location:"Wildwood Craft Room", instructor:"Don Jedlicka", description:"Three-week workshop to craft a unique butcher block board for your holiday table.", residentFee:35, nonResidentFee:42, extraLabel:"Supply fee due in cash", extraResident:30, extraNonResident:30, sessions:generateRecurringSessions({start:"2026-05-26",end:"2026-06-09",weekday:"Tue",startTime:"6:00 PM",endTime:"8:00 PM"}) },
-  { id:"watercolor-headlands-lighthouse", title:'Watercolor Workshop: "Headlands Lighthouse"', group:"Watercolor", area:"Wildwood", category:"watercolor", age:"16+", location:"Wildwood Cultural Center", instructor:"Jacki Wroblewski", description:"Two-class watercolor course focused on Lake County's historic Headlands Lighthouse.", residentFee:58, nonResidentFee:68, extraLabel:"Supply fee due to instructor", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-05-11",startTime:"6:00 PM",endTime:"9:30 PM"},{date:"2026-05-18",startTime:"6:00 PM",endTime:"9:30 PM"}]) },
-  { id:"watercolor-birch-cardinals", title:"Watercolor: Standing Birch and Cardinals Perched", group:"Watercolor", area:"Wildwood", category:"watercolor", age:"16+", location:"Wildwood Cultural Center", instructor:"Jacki Wroblewski", description:"Intermediate/advanced watercolor class with birches and perched red cardinals.", residentFee:42, nonResidentFee:52, extraLabel:"Supply fee due to instructor", extraResident:7, extraNonResident:7, sessions:explicitSessions([{date:"2026-07-13",startTime:"6:00 PM",endTime:"9:30 PM"}]) },
-  { id:"watercolor-beach-painting", title:"Watercolor for Beginners: Beautiful Beach Painting", group:"Watercolor", area:"Wildwood", category:"watercolor", age:"16+", location:"Wildwood Cultural Center", instructor:"Jacki Wroblewski", description:"Beginner watercolor course creating a finished beach scene ready for framing.", residentFee:36, nonResidentFee:42, extraLabel:"Supply fee due to instructor", extraResident:5, extraNonResident:5, sessions:explicitSessions([{date:"2026-06-15",startTime:"6:00 PM",endTime:"9:30 PM"}]) },
-  { id:"painting-with-me", title:"Painting with M.E.", group:"Mixed Media", area:"Wildwood", category:"painting", age:"21+", location:"Wildwood Cultural Center", instructor:"M.E. Kuzma", description:"Hand-color butterfly prints while exploring a variety of media.", residentFee:40, nonResidentFee:48, extraLabel:null, extraResident:0, extraNonResident:0, sessions:explicitSessions([{date:"2026-06-10",startTime:"6:30 PM",endTime:"8:30 PM"}]) },
-  { id:"stained-glass-hummingbird", title:"Stained Glass: Easy Humming Bird", group:"Glass", area:"Wildwood", category:"glass", age:"21+", location:"Wildwood Cultural Center", instructor:"Vicki Vesel", description:"Create a stained glass humming bird sun catcher in a four-class series.", residentFee:100, nonResidentFee:120, extraLabel:"Supply fee in cash", extraResident:35, extraNonResident:35, sessions:generateRecurringSessions({start:"2026-06-10",end:"2026-07-01",weekday:"Wed",startTime:"6:30 PM",endTime:"9:00 PM"}) },
-  { id:"intro-to-sewing", title:"Intro to Sewing", group:"Sewing", area:"Wildwood", category:"sewing", age:"12+", location:"Wildwood South Wing", instructor:"April Koch", description:"Learn threading, basic stitches, and finish a pillow to take home.", residentFee:30, nonResidentFee:36, extraLabel:"Additional fee due to instructor", extraResident:15, extraNonResident:15, sessions:explicitSessions([{date:"2026-06-11",startTime:"6:00 PM",endTime:"8:00 PM"}]) },
-  { id:"food-salad-dressings", title:"Food in the Kitchen: Salad Dressings and Marinades", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on salad dressings and marinades.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-05-05",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-pierogies", title:"Food in the Kitchen: Pierogies", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on pierogies.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-05-12",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-soy-wonderful", title:"Food in the Kitchen: It's Soy Wonderful", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on soy-based recipes.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-05-19",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-edible-flowers", title:"Food in the Kitchen: Edible Flowers", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on edible flowers.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-05-26",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-jams-jellies", title:"Food in the Kitchen: Jams and Jellies", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on jams and jellies.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-06-02",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-plant-based", title:"Food in the Kitchen: Plant Based Cooking", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on plant-based recipes.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-06-09",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-strawberries-blueberries", title:"Food in the Kitchen: Strawberries and Blueberries", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on berries.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-06-16",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-dinner-salads", title:"Food in the Kitchen: Dinner Salads", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on dinner salads.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-06-23",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-herbs", title:"Food in the Kitchen: Cooking with Herbs", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on cooking with herbs.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-06-30",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-ice-cream", title:"Food in the Kitchen: Ice Cream and Frozen Desserts", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on frozen desserts.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-08-04",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-cheesecakes", title:"Food in the Kitchen: Cheesecakes", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on cheesecakes.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-08-11",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-canning-101", title:"Food in the Kitchen: Canning 101", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on home canning basics.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-08-18",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"food-own-mixes", title:"Food in the Kitchen: Make your Own Mixes!", group:"Cooking", area:"Wildwood", category:"cooking", age:"16+", location:"Wildwood Kitchen", instructor:"Judi Strauss", description:"Interactive cooking class focused on pantry mix-making.", residentFee:20, nonResidentFee:24, extraLabel:"Food fee payable in cash", extraResident:10, extraNonResident:10, sessions:explicitSessions([{date:"2026-08-25",startTime:"7:00 PM",endTime:"9:00 PM"}]) },
-  { id:"creative-ceramics", title:"Creative Ceramics", group:"Ceramics", area:"Senior", category:"ceramics", age:"Senior Center", location:"Senior Center Cultural Arts Room", instructor:"Sharon Williams", description:"Decorate pre-made ceramic pieces. Wheel throwing and wet clay are not part of this class.", residentFee:50, nonResidentFee:60, extraLabel:"Supply fee included in registration", extraResident:0, extraNonResident:0, sessions:[...generateRecurringSessions({start:"2026-05-06",end:"2026-06-17",weekday:"Wed",startTime:"10:00 AM",endTime:"12:00 PM"}),...generateRecurringSessions({start:"2026-07-01",end:"2026-08-19",weekday:"Wed",startTime:"10:00 AM",endTime:"12:00 PM"})] },
-  { id:"arts-and-crafts-all-media", title:"Arts & Crafts All Media Painting", group:"Painting", area:"Senior", category:"painting", age:"Senior Center", location:"Senior Center Cultural Arts Room", instructor:"Ginny Mancini", description:"Learn art fundamentals in composition, design, and color using the media of your choice.", residentFee:40, nonResidentFee:50, extraLabel:null, extraResident:0, extraNonResident:0, sessions:generateRecurringSessions({start:"2026-05-07",end:"2026-06-18",weekday:"Thu",startTime:"10:00 AM",endTime:"12:00 PM"}) },
-  { id:"faa-adult-ceramics-session-1", title:"Adult Ceramics - Session 1", group:"FAA Visual Arts", area:"Fine Arts Association", category:"ceramics", age:"18+", location:"Fine Arts Association", instructor:"Connor Costanzo, MA, ATR, LPC", description:"Studio-based ceramics covering handbuilding, wheel-throwing, and glaze application.", residentFee:264, nonResidentFee:264, extraLabel:"Adults must purchase their own clay from FAA", extraResident:15, extraNonResident:15, sessions:explicitSessions([{date:"2026-06-15",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-06-22",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-06-29",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-07-06",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-07-13",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-07-20",startTime:"6:00 PM",endTime:"8:00 PM"}]) },
-  { id:"faa-adult-ceramics-session-2", title:"Adult Ceramics - Session 2", group:"FAA Visual Arts", area:"Fine Arts Association", category:"ceramics", age:"18+", location:"Fine Arts Association", instructor:"Connor Costanzo, MA, ATR, LPC", description:"Studio-based ceramics covering handbuilding, wheel-throwing, and glaze application.", residentFee:264, nonResidentFee:264, extraLabel:"Adults must purchase their own clay from FAA", extraResident:15, extraNonResident:15, sessions:explicitSessions([{date:"2026-06-17",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-06-24",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-07-01",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-07-08",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-07-15",startTime:"6:00 PM",endTime:"8:00 PM"},{date:"2026-07-22",startTime:"6:00 PM",endTime:"8:00 PM"}]) },
-  { id:"faa-adult-clay-studio", title:"Adult Clay Studio", group:"FAA Visual Arts", area:"Fine Arts Association", category:"ceramics", age:"18+", location:"Fine Arts Association", instructor:"Connor Costanzo, MA, ATR, LPC", description:"Extended studio time for advanced handbuilding, wheel-throwing, and glaze application.", residentFee:330, nonResidentFee:330, extraLabel:"Adults must purchase their own clay from FAA", extraResident:15, extraNonResident:15, sessions:generateRecurringSessions({start:"2026-06-19",end:"2026-07-31",weekday:"Fri",startTime:"10:30 AM",endTime:"1:00 PM"}) },
-  { id:"faa-painting-coffee", title:"Painting and Coffee", group:"FAA Visual Arts", area:"Fine Arts Association", category:"painting", age:"18+", location:"Fine Arts Association", instructor:"Kathy Mercer", description:"Morning acrylic painting with coffee and a relaxed studio atmosphere.", residentFee:153, nonResidentFee:153, extraLabel:"Students provide their own supplies", extraResident:0, extraNonResident:0, sessions:generateRecurringSessions({start:"2026-06-19",end:"2026-07-31",weekday:"Fri",startTime:"9:30 AM",endTime:"11:00 AM"}) },
-  { id:"faa-craft-sip-paper-dahlia", title:'"Craft & Sip" Paper Dahlia Wall Hanging', group:"FAA Visual Arts", area:"Fine Arts Association", category:"painting", age:"21+", location:"Fine Arts Association", instructor:"Melissa Nickerson", description:"Create a layered paper dahlia wall hanging in a social craft-and-sip workshop.", residentFee:30, nonResidentFee:30, extraLabel:"All supplies included", extraResident:0, extraNonResident:0, sessions:explicitSessions([{date:"2026-06-19",startTime:"7:00 PM",endTime:"8:30 PM"}]) },
-  { id:"faa-hand-tied-rose-bouquet", title:"Create Your Own Hand-Tied Rose Bouquet", group:"FAA Visual Arts", area:"Fine Arts Association", category:"painting", age:"21+", location:"Fine Arts Association", instructor:"Melissa Nickerson", description:"Learn to create a simple hand-tied rose bouquet for displays or special events.", residentFee:30, nonResidentFee:30, extraLabel:"All supplies included", extraResident:0, extraNonResident:0, sessions:explicitSessions([{date:"2026-06-27",startTime:"10:00 AM",endTime:"11:30 AM"}]) },
-  { id:"faa-cat-ceramics", title:"CAT Ceramics Summer Fun Social Group", group:"FAA Visual Arts", area:"Fine Arts Association", category:"ceramics", age:"60+", location:"Fine Arts Association", instructor:"Connor Costanzo, MA, ATR, LPC", description:"Social art group for older adults to explore multiple mediums in a relaxed creative setting.", residentFee:180, nonResidentFee:180, extraLabel:null, extraResident:0, extraNonResident:0, sessions:generateRecurringSessions({start:"2026-06-15",end:"2026-07-20",weekday:"Mon",startTime:"3:15 PM",endTime:"4:45 PM"}) }
-];
+const offerings = window.OFFERINGS || [];
 
 const STORAGE_KEY = "mentor-summer-art-planner-state";
 const SHARE_PARAM = "picks";
 const EMAIL_TO = "reedhmartin@gmail.com";
 const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwWnItUGZrBwrGZWveWt0xplJk31U0oj8yE9MOIJ_-eDLEdRBfYaderEGt96Rd4Ruja/exec";
+const CATEGORY_LABELS = {
+  all: "All categories",
+  ceramics: "Ceramics",
+  cooking: "Cooking",
+  glass: "Glass",
+  painting: "Painting",
+  sewing: "Sewing",
+  watercolor: "Watercolor",
+  woodworking: "Woodworking"
+};
 
 const selected = new Set();
 let pricingMode = "resident";
@@ -100,6 +79,24 @@ const updateLocationCounts = () => {
   Object.entries(labels).forEach(([value, label]) => {
     const option = document.querySelector(`#areaFilter option[value='${value}']`);
     if (option) option.textContent = `${label} (${counts[value]})`;
+  });
+};
+
+const updateCategoryCounts = () => {
+  const counts = offerings.reduce((totals, item) => {
+    totals.all += 1;
+    totals[item.category] = (totals[item.category] || 0) + 1;
+    return totals;
+  }, { all:0 });
+  const filter = document.getElementById("categoryFilter");
+  if (!filter) return;
+  const categories = Object.keys(CATEGORY_LABELS).filter(category => category === "all" || counts[category]);
+  filter.innerHTML = "";
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = `${CATEGORY_LABELS[category]} (${counts[category] || 0})`;
+    filter.appendChild(option);
   });
 };
 
@@ -215,9 +212,7 @@ const openModal = item => {
   document.getElementById("modalAge").textContent = item.age;
   document.getElementById("modalLocation").textContent = item.location;
   document.getElementById("modalInstructor").textContent = item.instructor;
-  document.getElementById("modalNotes").textContent = item.extraLabel
-    ? `${item.extraLabel}. Cost is summarized at the end of the planner.`
-    : "Cost is summarized at the end of the planner.";
+  document.getElementById("modalNotes").textContent = signupDetails(item).notes;
   const sessionsRoot = document.getElementById("modalSessions");
   sessionsRoot.innerHTML = "";
   item.sessions.forEach(session => {
@@ -327,17 +322,11 @@ const renderSelectedSummary = () => {
   const root = document.getElementById("selectedList");
   root.innerHTML = "";
   items.forEach(item => {
-    const total = pricingMode === "resident" ? item.residentFee + item.extraResident : item.nonResidentFee + item.extraNonResident;
     const card = document.createElement("div");
     card.className = "summary-card";
     card.innerHTML = `
       <div class="summary-title">${item.title}</div>
       <div class="summary-meta">${cardText(item)}<br />${item.location} | ${item.instructor}</div>
-      <div class="summary-breakdown">
-        <div><span>Base fee</span><strong>${fmtMoney(pricingMode === "resident" ? item.residentFee : item.nonResidentFee)}</strong></div>
-        <div><span>${item.extraLabel ? item.extraLabel : "No extra fee listed"}</span><strong>${fmtMoney(pricingMode === "resident" ? item.extraResident : item.extraNonResident)}</strong></div>
-        <div><span>Total</span><strong>${fmtMoney(total)}</strong></div>
-      </div>
     `;
     root.appendChild(card);
   });
@@ -346,15 +335,25 @@ const renderSelectedSummary = () => {
 const renderClassList = () => {
   const query = document.getElementById("searchBox").value.trim().toLowerCase();
   const area = document.getElementById("areaFilter").value;
+  const category = document.getElementById("categoryFilter").value;
   const root = document.getElementById("classList");
   root.innerHTML = "";
-  offerings
+  const filtered = offerings
     .filter(item => {
       const hay = [item.title,item.group,item.location,item.instructor,item.description,item.age].join(" ").toLowerCase();
       const matchesQuery = !query || hay.includes(query);
       const matchesArea = area === "all" || (area === "wildwood" && item.area === "Wildwood") || (area === "senior" && item.area === "Senior") || (area === "faa" && item.area === "Fine Arts Association");
-      return matchesQuery && matchesArea;
-    })
+      const matchesCategory = category === "all" || item.category === category;
+      return matchesQuery && matchesArea && matchesCategory;
+    });
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No classes match the current search and filters.";
+    root.appendChild(empty);
+    return;
+  }
+  filtered
     .forEach(item => {
       const card = document.createElement("article");
       card.className = "class-card" + (selected.has(item.id) ? " selected" : "");
@@ -409,6 +408,39 @@ const renderClassList = () => {
       });
       root.appendChild(card);
     });
+};
+
+const renderRegistrationChecklist = () => {
+  const root = document.getElementById("registrationList");
+  if (!root) return;
+  const items = offerings.filter(item => selected.has(item.id));
+  root.innerHTML = "";
+  if (!items.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "Select one or more classes to build a registration checklist.";
+    root.appendChild(empty);
+    return;
+  }
+  items.forEach(item => {
+    const details = signupDetails(item);
+    const card = document.createElement("article");
+    card.className = "checklist-card";
+    card.innerHTML = `
+      <h3 class="checklist-title">${item.title}</h3>
+      <div class="checklist-meta">${item.group} | ${item.age} | ${item.location}</div>
+      <div class="checklist-grid">
+        <div class="checklist-field"><span>Sign-up source</span><strong>${details.source}</strong></div>
+        <div class="checklist-field"><span>Class/activity code</span><strong>${details.code}</strong></div>
+        <div class="checklist-field"><span>Register online</span><a href="${details.register}" target="_blank" rel="noopener">${details.register}</a></div>
+        <div class="checklist-field"><span>Phone</span><strong>${details.phone}</strong></div>
+        <div class="checklist-field"><span>Schedule</span><strong>${item.sessions.map(formatSessionLine).join("; ")}</strong></div>
+        <div class="checklist-field"><span>Instructor</span><strong>${item.instructor}</strong></div>
+      </div>
+      <div class="checklist-meta">${details.notes}</div>
+    `;
+    root.appendChild(card);
+  });
 };
 
 const monthNames = ["May 2026","June 2026","July 2026","August 2026","September 2026"];
@@ -505,10 +537,12 @@ const setShareStatus = message => {
 };
 
 const setPlannerView = view => {
-  plannerView = view === "calendar" ? "calendar" : "cards";
+  plannerView = view === "calendar" || view === "checklist" ? view : "cards";
   const showCalendar = plannerView === "calendar";
-  document.getElementById("cardsView").classList.toggle("view-hidden", showCalendar);
+  const showChecklist = plannerView === "checklist";
+  document.getElementById("cardsView").classList.toggle("view-hidden", showCalendar || showChecklist);
   document.getElementById("calendarView").classList.toggle("view-hidden", !showCalendar);
+  document.getElementById("checklistView").classList.toggle("view-hidden", !showChecklist);
   document.querySelectorAll(".view-btn").forEach(button => {
     const active = button.dataset.view === plannerView;
     button.classList.toggle("active", active);
@@ -517,6 +551,9 @@ const setPlannerView = view => {
   if (showCalendar) {
     document.getElementById("calendarDrawer").open = true;
     document.getElementById("calendarView").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (showChecklist) {
+    document.getElementById("checklistView").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 };
 
@@ -657,6 +694,7 @@ const renderAll = () => {
   renderClassList();
   renderCalendar();
   renderSelectedSummary();
+  renderRegistrationChecklist();
   renderConflictNotice();
   if (activeItemId) {
     const activeItem = getItemById(activeItemId);
@@ -665,12 +703,14 @@ const renderAll = () => {
 };
 
 updateLocationCounts();
+updateCategoryCounts();
 loadInitialState();
 renderAll();
 if (importedShare) setShareStatus("Loaded shared picks on this device.");
 
 document.getElementById("searchBox").addEventListener("input", renderAll);
 document.getElementById("areaFilter").addEventListener("change", renderAll);
+document.getElementById("categoryFilter").addEventListener("change", renderAll);
 document.querySelectorAll(".view-btn").forEach(button => {
   bindTap(button, () => setPlannerView(button.dataset.view));
 });
@@ -706,3 +746,4 @@ bindTap(document.getElementById("modalToggle"), () => {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeModal();
 });
+
