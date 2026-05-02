@@ -25,6 +25,7 @@
     .toggle-row{display:flex;gap:8px;flex-wrap:wrap}
     .toolbar{padding:14px;display:grid;grid-template-columns:auto minmax(0,1fr) minmax(220px,auto);gap:12px;align-items:center;margin-bottom:20px}
     .view-toggle{display:grid;grid-template-columns:1fr 1fr;gap:4px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.7);padding:4px}
+    button,.view-btn,.action,.select-btn,.details-btn,.event,.modal-close,.calendar-drawer summary{touch-action:manipulation;-webkit-tap-highlight-color:rgba(233,95,67,.18)}
     .view-btn{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;min-height:40px}
     .view-btn.active{background:linear-gradient(135deg,#e95f43,#f5be3d);color:#2d2018;box-shadow:0 8px 18px rgba(233,95,67,.16)}
     .search,.select{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.82);color:var(--text);border-radius:14px;padding:12px 14px;outline:none;font-size:.98rem}
@@ -86,7 +87,7 @@
     .share-panel strong{color:var(--text)}
     .modal-backdrop{position:fixed;inset:0;background:rgba(53,35,23,.32);display:flex;align-items:center;justify-content:center;padding:18px;z-index:30}.modal-backdrop.hidden{display:none}
     .modal-card{width:min(860px,100%);max-height:min(90vh,960px);overflow:auto;border:1px solid rgba(180,107,61,.18);background:linear-gradient(180deg,#fffdf8,#fff7ee);border-radius:24px;box-shadow:0 28px 120px rgba(180,107,61,.22);padding:22px;position:relative}
-    .modal-close{position:sticky;top:0;float:right;z-index:5;border:1px solid rgba(180,107,61,.16);background:#fff4ec;color:var(--text);width:44px;height:44px;border-radius:999px;font-size:1.25rem;font-weight:800;cursor:pointer;margin:-4px -4px 8px 12px;box-shadow:0 8px 18px rgba(84,66,43,.12)}
+    .modal-close{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:center;border:1px solid rgba(180,107,61,.16);background:#fff4ec;color:var(--text);width:44px;height:44px;border-radius:999px;font-size:1.25rem;font-weight:800;cursor:pointer;margin:-4px -4px 8px auto;box-shadow:0 8px 18px rgba(84,66,43,.12)}
     .modal-kicker{display:inline-flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;background:rgba(14,165,163,.12);color:#087f7e;font-size:.8rem;font-weight:700;margin-bottom:10px}
     .modal-title{margin:0;font-size:clamp(1.4rem,2.4vw,2.3rem);line-height:1.05}
     .modal-desc{margin:12px 0 16px;color:var(--muted);line-height:1.6}
@@ -134,14 +135,14 @@
       .weekday-row{font-size:.76rem;border-bottom:0;margin-bottom:8px}
       .weekday-row div{padding:8px 2px;text-align:center;font-weight:800;border:0}
       .month-grid{gap:4px}
-      .day{min-height:62px;padding:5px;border:0;border-radius:10px;background:rgba(255,255,255,.68);overflow:hidden}
+      .day{min-height:70px;padding:5px;border:0;border-radius:10px;background:rgba(255,255,255,.68);overflow:hidden}
       .day.muted{background:transparent;color:rgba(45,38,32,.34)}
       .day-num{font-size:.9rem}
-      .event{width:100%;padding:3px 4px;font-size:.54rem;border-radius:7px;box-shadow:none;white-space:nowrap}
+      .event{width:100%;min-height:26px;padding:5px 4px;font-size:.58rem;border-radius:8px;box-shadow:none;white-space:nowrap}
       .event small{display:none}
       .modal-backdrop{align-items:flex-end;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
       .modal-card{width:100%;max-height:calc(100dvh - 16px);padding:18px;border-radius:18px 18px 10px 10px}
-      .modal-close{width:46px;height:46px;margin:-2px -2px 8px 12px}
+      .modal-close{width:48px;height:48px;margin:-4px -4px 8px auto}
       .modal-grid{grid-template-columns:1fr}
       .modal-actions{flex-direction:column}
       .modal-actions .action{width:100%}
