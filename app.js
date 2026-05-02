@@ -61,6 +61,8 @@ let pricingMode = "resident";
 let activeItemId = null;
 let importedShare = false;
 let activeCalendarMonth = 4;
+let calendarScope = "all";
+let plannerView = "cards";
 
 const bindTap = (element, handler, { stopPropagation = false } = {}) => {
   let lastTouch = 0;
@@ -271,6 +273,48 @@ const buildEvents = (scope = "selected") => {
   return events;
 };
 
+const findSelectedDateConflicts = () => {
+  const byDate = new Map();
+  offerings.filter(item => selected.has(item.id)).forEach(item => {
+    item.sessions.forEach(session => {
+      if (!byDate.has(session.date)) byDate.set(session.date, []);
+      byDate.get(session.date).push({ item, session });
+    });
+  });
+  return [...byDate.entries()]
+    .filter(([, entries]) => entries.length > 1)
+    .map(([date, entries]) => ({
+      date,
+      entries: entries.sort((a, b) => timeToMinutes(a.session.startTime) - timeToMinutes(b.session.startTime))
+    }))
+    .sort((a, b) => parseDate(a.date) - parseDate(b.date));
+};
+
+const renderConflictNotice = () => {
+  const notice = document.getElementById("conflictNotice");
+  const list = document.getElementById("conflictList");
+  if (!notice || !list) return;
+  const conflicts = findSelectedDateConflicts();
+  notice.classList.toggle("hidden", conflicts.length === 0);
+  list.innerHTML = "";
+  conflicts.forEach(conflict => {
+    const item = document.createElement("li");
+    item.textContent = `${fmtLongDate(parseDate(conflict.date))}: ${conflict.entries.map(entry => `${entry.item.title} (${entry.session.startTime})`).join(" and ")}`;
+    list.appendChild(item);
+  });
+};
+
+const conflictMessageForItem = item => {
+  const related = findSelectedDateConflicts()
+    .filter(conflict => conflict.entries.some(entry => entry.item.id === item.id));
+  if (!related.length) return "";
+  const lines = related.map(conflict =>
+    `${fmtLongDate(parseDate(conflict.date))}: ${conflict.entries.map(entry => `${entry.item.title} (${entry.session.startTime})`).join(" and ")}`
+  );
+  return `Schedule conflict: ${lines.join("; ")}`;
+};
+
+
 const renderSelectedSummary = () => {
   const items = offerings.filter(item => selected.has(item.id));
   const eventCount = items.reduce((sum, item) => sum + item.sessions.length, 0);
@@ -373,7 +417,7 @@ const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const renderCalendar = () => {
   const root = document.getElementById("calendarMonths");
   root.innerHTML = "";
-  const events = buildEvents("all");
+  const events = buildEvents(calendarScope);
   const byDate = new Map();
   events.forEach(event => { if (!byDate.has(event.date)) byDate.set(event.date, []); byDate.get(event.date).push(event); });
   byDate.forEach(list => list.sort((a,b) => a.start - b.start));
@@ -430,10 +474,20 @@ const renderCalendar = () => {
   }
   const label = document.getElementById("activeMonthLabel");
   if (label) label.textContent = monthNames[activeCalendarMonth - 4];
+  document.querySelectorAll(".calendar-scope-btn").forEach(button => {
+    const active = button.dataset.calendarScope === calendarScope;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
 };
 
 const changeCalendarMonth = delta => {
   activeCalendarMonth = Math.max(4, Math.min(8, activeCalendarMonth + delta));
+  renderCalendar();
+};
+
+const setCalendarScope = scope => {
+  calendarScope = scope === "chosen" ? "chosen" : "all";
   renderCalendar();
 };
 
@@ -451,11 +505,12 @@ const setShareStatus = message => {
 };
 
 const setPlannerView = view => {
-  const showCalendar = view === "calendar";
+  plannerView = view === "calendar" ? "calendar" : "cards";
+  const showCalendar = plannerView === "calendar";
   document.getElementById("cardsView").classList.toggle("view-hidden", showCalendar);
   document.getElementById("calendarView").classList.toggle("view-hidden", !showCalendar);
   document.querySelectorAll(".view-btn").forEach(button => {
-    const active = button.dataset.view === view;
+    const active = button.dataset.view === plannerView;
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
   });
@@ -574,6 +629,8 @@ const setItemSelected = (item, shouldSelect, action) => {
   if (shouldSelect) selected.add(item.id); else selected.delete(item.id);
   saveState();
   renderAll();
+  const conflictMessage = shouldSelect ? conflictMessageForItem(item) : "";
+  if (conflictMessage) alert(conflictMessage);
   syncPicksToSheet(action || (shouldSelect ? "added" : "removed"), item);
 };
 
@@ -600,6 +657,7 @@ const renderAll = () => {
   renderClassList();
   renderCalendar();
   renderSelectedSummary();
+  renderConflictNotice();
   if (activeItemId) {
     const activeItem = getItemById(activeItemId);
     if (activeItem) syncModalSelection(activeItem);
@@ -618,6 +676,9 @@ document.querySelectorAll(".view-btn").forEach(button => {
 });
 bindTap(document.getElementById("prevMonth"), () => changeCalendarMonth(-1));
 bindTap(document.getElementById("nextMonth"), () => changeCalendarMonth(1));
+document.querySelectorAll(".calendar-scope-btn").forEach(button => {
+  bindTap(button, () => setCalendarScope(button.dataset.calendarScope));
+});
 bindTap(document.getElementById("sharePicks"), sharePicks);
 bindTap(document.getElementById("sharePicksSummary"), sharePicks);
 bindTap(document.getElementById("clearAll"), () => { selected.clear(); saveState(); renderAll(); syncPicksToSheet("cleared"); });
@@ -638,8 +699,9 @@ bindTap(document.getElementById("modalToggle"), () => {
   if (!item) return;
   setItemSelected(item, !selected.has(item.id));
   closeModal();
-  setPlannerView("cards");
-  document.getElementById("classList").scrollIntoView({ behavior: "smooth", block: "start" });
+  if (plannerView === "cards") {
+    document.getElementById("classList").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 });
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeModal();

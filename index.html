@@ -61,6 +61,13 @@
     .month-nav{display:none;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center;margin-bottom:12px}
     .month-nav button{border:1px solid var(--line);background:rgba(255,255,255,.84);border-radius:12px;min-height:42px;font-size:1.1rem;font-weight:800;cursor:pointer;color:var(--text)}
     .month-nav strong{text-align:center;font-size:1.05rem}
+    .calendar-tools{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px}
+    .calendar-scope{display:grid;grid-template-columns:1fr 1fr;gap:4px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.7);padding:4px}
+    .calendar-scope-btn{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer;min-height:38px}
+    .calendar-scope-btn.active{background:linear-gradient(135deg,#087f83,#38b8a8);color:#fff;box-shadow:0 8px 18px rgba(8,127,131,.16)}
+    .conflict-notice{border:1px solid rgba(217,79,134,.34);background:rgba(255,238,246,.9);color:#4a1f31;border-radius:12px;padding:12px 14px;margin:0 0 12px}
+    .conflict-notice strong{display:block;margin-bottom:6px}
+    .conflict-notice ul{margin:0;padding-left:18px;line-height:1.45}
     .calendar-drawer{margin-top:4px}
     .calendar-drawer summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.82);padding:12px 14px;cursor:pointer;font-weight:800;color:var(--text)}
     .calendar-drawer summary::-webkit-details-marker{display:none}
@@ -128,6 +135,8 @@
       .toggle-row .action{width:100%;min-height:38px;padding:7px 8px;font-size:.9rem}
       .class-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
       .month-nav{display:grid}
+      .calendar-tools{display:grid;grid-template-columns:1fr;gap:10px}
+      .calendar-scope-btn{min-height:44px}
       .months{display:grid;grid-template-columns:1fr;gap:0}
       .month{display:none;border:0;background:transparent}
       .month.active-month{display:block}
@@ -196,7 +205,17 @@
       <main class="calendar-panel view-hidden" id="calendarView">
         <details class="calendar-drawer" id="calendarDrawer" open>
           <summary>Calendar preview</summary>
-          <div class="calendar-head"><div><h2>Summer Calendar</h2><p>May through September 2026. All available classes are shown; chosen classes are highlighted.</p></div></div>
+          <div class="calendar-head"><div><h2>Summer Calendar</h2><p>May through September 2026. Switch between every class date and only chosen dates.</p></div></div>
+          <div class="calendar-tools">
+            <div class="calendar-scope" aria-label="Calendar event display">
+              <button class="calendar-scope-btn active" type="button" data-calendar-scope="all" aria-pressed="true">All Events</button>
+              <button class="calendar-scope-btn" type="button" data-calendar-scope="chosen" aria-pressed="false">Chosen Events</button>
+            </div>
+          </div>
+          <div class="conflict-notice hidden" id="conflictNotice" role="alert" aria-live="polite">
+            <strong>Schedule conflict</strong>
+            <ul id="conflictList"></ul>
+          </div>
           <div class="month-nav" aria-label="Calendar month navigation">
             <button type="button" id="prevMonth" aria-label="Previous month">‹</button>
             <strong id="activeMonthLabel">May 2026</strong>
@@ -243,6 +262,6 @@
       </div>
     </div>
   </div>
-  <script src="app.js?v=20260502-touch"></script>
+  <script src="app.js?v=20260502-keep-view"></script>
 </body>
 </html>
