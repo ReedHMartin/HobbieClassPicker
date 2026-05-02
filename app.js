@@ -60,6 +60,26 @@ let importedShare = false;
 
 const validIds = () => new Set(offerings.map(item => item.id));
 
+const updateLocationCounts = () => {
+  const counts = offerings.reduce((totals, item) => {
+    totals.all += 1;
+    if (item.area === "Wildwood") totals.wildwood += 1;
+    if (item.area === "Senior") totals.senior += 1;
+    if (item.area === "Fine Arts Association") totals.faa += 1;
+    return totals;
+  }, { all:0, wildwood:0, senior:0, faa:0 });
+  const labels = {
+    all: "All locations",
+    wildwood: "Wildwood",
+    senior: "Senior Center",
+    faa: "Fine Arts Association"
+  };
+  Object.entries(labels).forEach(([value, label]) => {
+    const option = document.querySelector(`#areaFilter option[value='${value}']`);
+    if (option) option.textContent = `${label} (${counts[value]})`;
+  });
+};
+
 const getShareState = () => {
   const params = new URLSearchParams(window.location.search);
   const picks = params.get(SHARE_PARAM);
@@ -146,9 +166,14 @@ const openModal = item => {
   });
   syncModalSelection(item);
   const modal = document.getElementById("eventModal");
+  const modalCard = modal.querySelector(".modal-card");
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
-  document.getElementById("modalToggle").focus();
+  if (modalCard) modalCard.scrollTop = 0;
+  requestAnimationFrame(() => {
+    if (modalCard) modalCard.scrollTop = 0;
+    document.getElementById("modalClose").focus({ preventScroll:true });
+  });
 };
 
 const closeModal = () => {
@@ -417,6 +442,7 @@ const renderAll = () => {
   }
 };
 
+updateLocationCounts();
 loadInitialState();
 renderAll();
 if (importedShare) setShareStatus("Loaded shared picks on this device.");
