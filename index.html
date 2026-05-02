@@ -23,15 +23,17 @@
     .stat .value{font-size:1.55rem;font-weight:800}
     .stat .sub{margin-top:6px;color:var(--muted);font-size:.86rem}
     .toggle-row{display:flex;gap:8px;flex-wrap:wrap}
-    .download-panel{display:grid;gap:8px;padding-top:2px}
-    .download-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .toolbar{padding:14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,auto);gap:12px;align-items:center;margin-bottom:20px}
+    .toolbar{padding:14px;display:grid;grid-template-columns:auto minmax(0,1fr) minmax(220px,auto);gap:12px;align-items:center;margin-bottom:20px}
+    .view-toggle{display:grid;grid-template-columns:1fr 1fr;gap:4px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.7);padding:4px}
+    .view-btn{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;min-height:40px}
+    .view-btn.active{background:linear-gradient(135deg,#e95f43,#f5be3d);color:#2d2018;box-shadow:0 8px 18px rgba(233,95,67,.16)}
     .search,.select{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.82);color:var(--text);border-radius:14px;padding:12px 14px;outline:none;font-size:.98rem}
     .action{border:1px solid rgba(233,95,67,.34);background:linear-gradient(135deg,#e95f43,#f5be3d);color:#2d2018;font-weight:800;padding:12px 16px;border-radius:12px;cursor:pointer;box-shadow:0 10px 24px rgba(233,95,67,.18);min-height:46px}
     .action.secondary{background:rgba(255,255,255,.82);color:var(--text);box-shadow:none}
     .action.full{width:100%;justify-content:center}
     .share-status{min-height:18px;color:var(--muted);font-size:.86rem;line-height:1.35}
     .layout{display:grid;grid-template-columns:1fr;gap:20px;align-items:start}
+    .view-hidden{display:none !important}
     .sidebar,.calendar-panel,.footnote{padding:18px}
     .sidebar{position:static;max-height:none;overflow:visible}
     .sidebar h2,.calendar-panel h2,.footnote h2{margin:0 0 10px;font-size:1.2rem}
@@ -55,6 +57,9 @@
     .class-card.selected .select-btn{background:#fff;color:#b03d29;border-color:rgba(176,61,41,.3)}
     .calendar-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
     .calendar-head p{margin:0;color:var(--muted)}
+    .month-nav{display:none;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center;margin-bottom:12px}
+    .month-nav button{border:1px solid var(--line);background:rgba(255,255,255,.84);border-radius:12px;min-height:42px;font-size:1.1rem;font-weight:800;cursor:pointer;color:var(--text)}
+    .month-nav strong{text-align:center;font-size:1.05rem}
     .calendar-drawer{margin-top:4px}
     .calendar-drawer summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.82);padding:12px 14px;cursor:pointer;font-weight:800;color:var(--text)}
     .calendar-drawer summary::-webkit-details-marker{display:none}
@@ -62,14 +67,6 @@
     .calendar-drawer[open] summary{margin-bottom:14px}
     .calendar-drawer[open] summary:after{content:"Hide"}
     .month{overflow:hidden}.month h3{margin:0;padding:10px 12px;border-bottom:1px solid rgba(180,107,61,.1);font-size:.95rem;background:linear-gradient(90deg,rgba(255,209,102,.22),rgba(14,165,163,.12))}
-    .agenda{display:none}
-    .agenda-list{display:grid;gap:12px}
-    .agenda-day{padding:14px;border:1px solid rgba(180,107,61,.14);border-radius:16px;background:rgba(255,255,255,.7)}
-    .agenda-day h3{margin:0 0 10px;font-size:1.02rem}
-    .agenda-item{display:grid;gap:4px;padding:10px 0;border-top:1px solid rgba(180,107,61,.12)}
-    .agenda-item:first-child{border-top:none;padding-top:0}
-    .agenda-item strong{font-size:.96rem}
-    .agenda-item span{color:var(--muted);font-size:.9rem;line-height:1.45}
     .weekday-row,.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
     .weekday-row{color:var(--faint);font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid rgba(180,107,61,.1)}
     .weekday-row div,.day{padding:5px;min-height:74px;border-right:1px solid rgba(180,107,61,.08);border-bottom:1px solid rgba(180,107,61,.08)}
@@ -77,8 +74,10 @@
     .day{background:rgba(255,255,255,.42);display:flex;flex-direction:column;gap:4px}
     .day.muted{color:rgba(53,35,23,.32);background:rgba(255,255,255,.24)}
     .day-num{font-size:.68rem;font-weight:700}
-    .event{border:0;border-radius:8px;padding:4px 5px;color:#352317;font-size:.62rem;font-weight:700;line-height:1.18;cursor:pointer;text-align:left;box-shadow:0 6px 14px rgba(180,107,61,.12);overflow:hidden;text-overflow:ellipsis}
+    .event{border:1px solid transparent;border-radius:8px;padding:4px 5px;color:#352317;font-size:.62rem;font-weight:700;line-height:1.18;cursor:pointer;text-align:left;box-shadow:0 6px 14px rgba(180,107,61,.12);overflow:hidden;text-overflow:ellipsis}
     .event small{display:block;font-weight:800;opacity:.82;margin-top:1px}
+    .event.available{opacity:.55;filter:saturate(.68)}
+    .event.chosen{border-color:rgba(53,35,23,.5);box-shadow:0 0 0 2px rgba(233,95,67,.24),0 8px 18px rgba(180,107,61,.16)}
     .event.watercolor{background:linear-gradient(135deg,#bae6fd,#7dd3fc)} .event.woodworking{background:linear-gradient(135deg,#fed7aa,#fdba74)} .event.cooking{background:linear-gradient(135deg,#fef3c7,#ffd166)} .event.glass{background:linear-gradient(135deg,#bbf7d0,#86efac)} .event.sewing{background:linear-gradient(135deg,#ddd6fe,#c4b5fd)} .event.painting{background:linear-gradient(135deg,#a7f3d0,#67e8f9)} .event.ceramics{background:linear-gradient(135deg,#fecdd3,#fda4af)}
     .summary-card{padding:14px}
     .summary-title{font-weight:800;margin:0 0 4px}.summary-meta{color:var(--muted);font-size:.9rem;line-height:1.5}.summary-breakdown{margin-top:12px;display:grid;gap:8px;color:var(--muted);font-size:.9rem}.summary-breakdown div{display:flex;justify-content:space-between;gap:10px}.summary-breakdown strong{color:var(--text)}
@@ -87,7 +86,7 @@
     .share-panel strong{color:var(--text)}
     .modal-backdrop{position:fixed;inset:0;background:rgba(53,35,23,.32);display:flex;align-items:center;justify-content:center;padding:18px;z-index:30}.modal-backdrop.hidden{display:none}
     .modal-card{width:min(860px,100%);max-height:min(90vh,960px);overflow:auto;border:1px solid rgba(180,107,61,.18);background:linear-gradient(180deg,#fffdf8,#fff7ee);border-radius:24px;box-shadow:0 28px 120px rgba(180,107,61,.22);padding:22px;position:relative}
-    .modal-close{position:absolute;top:14px;right:14px;border:0;background:rgba(255,143,112,.16);color:var(--text);width:38px;height:38px;border-radius:999px;font-size:1.2rem;cursor:pointer}
+    .modal-close{position:sticky;top:0;float:right;z-index:5;border:1px solid rgba(180,107,61,.16);background:#fff4ec;color:var(--text);width:44px;height:44px;border-radius:999px;font-size:1.25rem;font-weight:800;cursor:pointer;margin:-4px -4px 8px 12px;box-shadow:0 8px 18px rgba(84,66,43,.12)}
     .modal-kicker{display:inline-flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;background:rgba(14,165,163,.12);color:#087f7e;font-size:.8rem;font-weight:700;margin-bottom:10px}
     .modal-title{margin:0;font-size:clamp(1.4rem,2.4vw,2.3rem);line-height:1.05}
     .modal-desc{margin:12px 0 16px;color:var(--muted);line-height:1.6}
@@ -121,22 +120,28 @@
       .lede{display:none}
       .sidebar,.calendar-panel,.footnote{padding:14px}
       .toolbar{padding:12px;gap:10px;margin-bottom:12px}
+      .view-toggle{order:-1}
       .search,.select,.action{font-size:16px}
       .action,.select-btn,.details-btn{min-height:48px}
       .toggle-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
       .toggle-row .action{width:100%;min-height:38px;padding:7px 8px;font-size:.9rem}
-      .download-buttons{grid-template-columns:1fr 1fr}
-      .download-panel{gap:6px}
-      .download-panel .select{min-height:38px;padding:8px 10px;font-size:.9rem}
-      .download-buttons .action{min-height:38px;padding:7px 8px;font-size:.86rem}
-      .agenda{display:block}
-      .agenda-list:empty:before{content:"Picked events will appear here.";display:block;padding:14px;border:1px dashed rgba(120,106,85,.24);border-radius:12px;color:var(--muted);background:rgba(255,255,255,.56)}
       .class-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-      .months{display:none}
-      .weekday-row div,.day{min-height:64px;padding:5px}
+      .month-nav{display:grid}
+      .months{display:grid;grid-template-columns:1fr;gap:0}
+      .month{display:none;border:0;background:transparent}
+      .month.active-month{display:block}
+      .month h3{display:none}
+      .weekday-row{font-size:.76rem;border-bottom:0;margin-bottom:8px}
+      .weekday-row div{padding:8px 2px;text-align:center;font-weight:800;border:0}
+      .month-grid{gap:4px}
+      .day{min-height:62px;padding:5px;border:0;border-radius:10px;background:rgba(255,255,255,.68);overflow:hidden}
+      .day.muted{background:transparent;color:rgba(45,38,32,.34)}
+      .day-num{font-size:.9rem}
+      .event{width:100%;padding:3px 4px;font-size:.54rem;border-radius:7px;box-shadow:none;white-space:nowrap}
+      .event small{display:none}
       .modal-backdrop{align-items:flex-end;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
       .modal-card{width:100%;max-height:calc(100dvh - 16px);padding:18px;border-radius:18px 18px 10px 10px}
-      .modal-close{top:10px;right:10px;width:42px;height:42px}
+      .modal-close{width:46px;height:46px;margin:-2px -2px 8px 12px}
       .modal-grid{grid-template-columns:1fr}
       .modal-actions{flex-direction:column}
       .modal-actions .action{width:100%}
@@ -151,7 +156,7 @@
       .share-panel{padding:12px}
     }
     @media (max-width:360px){
-      .stat-grid,.toggle-row,.download-buttons{grid-template-columns:1fr}
+      .stat-grid,.toggle-row{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -170,39 +175,33 @@
           <button class="action secondary" id="sharePicks">Send Picks</button>
           <button class="action secondary" id="clearAll">Clear all</button>
         </div>
-        <div class="download-panel">
-          <select class="select" id="calendarFormat" aria-label="Calendar download format">
-            <option value="ical">iCal (.ics)</option>
-            <option value="gcal">Google Calendar (.csv)</option>
-          </select>
-          <div class="download-buttons">
-            <button class="action secondary" id="downloadAllEvents">Download All</button>
-            <button class="action secondary" id="downloadChosenEvents">Download Chosen</button>
-          </div>
-        </div>
         <div class="share-status" id="shareStatus" aria-live="polite"></div>
       </aside>
     </section>
     <section class="toolbar">
+      <div class="view-toggle" role="tablist" aria-label="Planner view">
+        <button class="view-btn active" id="cardsViewButton" type="button" data-view="cards" role="tab" aria-selected="true">Cards</button>
+        <button class="view-btn" id="calendarViewButton" type="button" data-view="calendar" role="tab" aria-selected="false">Calendar</button>
+      </div>
       <input class="search" id="searchBox" type="search" placeholder="Search events" />
       <select class="select" id="areaFilter"><option value="all">All locations</option><option value="wildwood">Wildwood</option><option value="senior">Senior Center</option><option value="faa">Fine Arts Association</option></select>
     </section>
     <section class="layout">
-      <aside class="sidebar">
+      <aside class="sidebar" id="cardsView">
         <h2>Event Cards</h2>
         <p class="section-copy">Pick a few art, craft, cooking, and hobby ideas. Classes with fixed summer dates can be added straight to the calendar.</p>
         <div class="class-list" id="classList"></div>
       </aside>
-      <main class="calendar-panel">
-        <details class="calendar-drawer">
+      <main class="calendar-panel view-hidden" id="calendarView">
+        <details class="calendar-drawer" id="calendarDrawer" open>
           <summary>Calendar preview</summary>
-          <div class="calendar-head"><div><h2>Summer Calendar</h2><p>May through September 2026. Picked classes appear on their dates and can be exported to a calendar.</p></div></div>
+          <div class="calendar-head"><div><h2>Summer Calendar</h2><p>May through September 2026. All available classes are shown; chosen classes are highlighted.</p></div></div>
+          <div class="month-nav" aria-label="Calendar month navigation">
+            <button type="button" id="prevMonth" aria-label="Previous month">‹</button>
+            <strong id="activeMonthLabel">May 2026</strong>
+            <button type="button" id="nextMonth" aria-label="Next month">›</button>
+          </div>
           <div class="months" id="calendarMonths"></div>
-          <section class="agenda" id="mobileAgenda">
-            <h2>Agenda View</h2>
-            <p class="section-copy">Phone view keeps the plan compact by showing only days with picked events.</p>
-            <div class="agenda-list" id="agendaList"></div>
-          </section>
         </details>
         <section class="footnote">
           <h2>Plan Summary</h2>

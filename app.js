@@ -60,6 +60,7 @@ const selected = new Set();
 let pricingMode = "resident";
 let activeItemId = null;
 let importedShare = false;
+let activeCalendarMonth = 4;
 
 const validIds = () => new Set(offerings.map(item => item.id));
 
@@ -235,9 +236,11 @@ const buildEvents = (scope = "selected") => {
       const date = parseDate(session.date);
       events.push({
         id: `${item.id}-${session.date}-${session.startTime}`,
+        itemId: item.id,
         title: item.title,
         category: item.category,
         date: session.date,
+        selected: selected.has(item.id),
         start: buildDateTime(date, session.startTime),
         end: buildDateTime(date, session.endTime),
         location: item.location,
@@ -355,7 +358,7 @@ const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const renderCalendar = () => {
   const root = document.getElementById("calendarMonths");
   root.innerHTML = "";
-  const events = buildEvents();
+  const events = buildEvents("all");
   const byDate = new Map();
   events.forEach(event => { if (!byDate.has(event.date)) byDate.set(event.date, []); byDate.get(event.date).push(event); });
   byDate.forEach(list => list.sort((a,b) => a.start - b.start));
@@ -366,7 +369,8 @@ const renderCalendar = () => {
     const startGrid = new Date(first); startGrid.setDate(first.getDate() - first.getDay());
     const endGrid = new Date(last); endGrid.setDate(last.getDate() + (6 - last.getDay()));
     const month = document.createElement("section");
-    month.className = "month";
+    month.className = "month" + (monthIndex === activeCalendarMonth ? " active-month" : "");
+    month.dataset.monthIndex = String(monthIndex);
     month.innerHTML = `<h3>${monthNames[monthIndex - 4]}</h3>`;
     const weekdayRow = document.createElement("div");
     weekdayRow.className = "weekday-row";
@@ -386,9 +390,13 @@ const renderCalendar = () => {
       cell.appendChild(num);
       dayEvents.slice(0, 3).forEach(event => {
         const btn = document.createElement("button");
-        btn.className = `event ${event.category}`;
+        btn.className = `event ${event.category} ${event.selected ? "chosen" : "available"}`;
         btn.title = `${event.title}\n${fmtLongDate(event.start)} ${event.start.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})} - ${event.end.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
-        btn.innerHTML = `${event.title}<small>${event.start.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</small>`;
+        btn.innerHTML = `${event.title}<small>${event.selected ? "Chosen" : "Available"} | ${event.start.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</small>`;
+        btn.addEventListener("click", () => {
+          const item = getItemById(event.itemId);
+          if (item) openModal(item);
+        });
         cell.appendChild(btn);
       });
       if (dayEvents.length > 3) {
@@ -405,106 +413,13 @@ const renderCalendar = () => {
     month.appendChild(grid);
     root.appendChild(month);
   }
+  const label = document.getElementById("activeMonthLabel");
+  if (label) label.textContent = monthNames[activeCalendarMonth - 4];
 };
 
-const renderMobileAgenda = () => {
-  const root = document.getElementById("agendaList");
-  root.innerHTML = "";
-  const events = buildEvents();
-  const byDate = new Map();
-  events.forEach(event => {
-    if (!byDate.has(event.date)) byDate.set(event.date, []);
-    byDate.get(event.date).push(event);
-  });
-  const dates = [...byDate.keys()].sort();
-  dates.forEach(dateKey => {
-    const dayEvents = byDate.get(dateKey).slice().sort((a, b) => a.start - b.start);
-    const day = document.createElement("article");
-    day.className = "agenda-day";
-    const title = document.createElement("h3");
-    title.textContent = fmtLongDate(parseDate(dateKey));
-    day.appendChild(title);
-    dayEvents.forEach(event => {
-      const item = document.createElement("div");
-      item.className = "agenda-item";
-      item.innerHTML = `
-        <strong>${event.title}</strong>
-        <span>${event.start.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})} - ${event.end.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</span>
-        <span>${event.location}</span>
-      `;
-      day.appendChild(item);
-    });
-    root.appendChild(day);
-  });
-};
-
-const escapeIcs = text => String(text).replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
-const formatIcsDate = date => {
-  const pad = n => String(n).padStart(2,"0");
-  return `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
-};
-const csvCell = value => `"${String(value).replace(/"/g, '""')}"`;
-const formatCsvDate = date => `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`;
-const formatCsvTime = date => date.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
-
-const downloadBlob = (content, filename, type) => {
-  const blob = new Blob([content], {type});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-const buildIcs = events => {
-  const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Codex//Tifanii Hobby Classes//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
-  events.forEach((event, idx) => {
-    lines.push(
-      "BEGIN:VEVENT",
-      `UID:${event.id}-${idx}@codex`,
-      `DTSTAMP:${formatIcsDate(new Date())}`,
-      `SUMMARY:${escapeIcs(event.title)}`,
-      `DTSTART:${formatIcsDate(event.start)}`,
-      `DTEND:${formatIcsDate(event.end)}`,
-      `LOCATION:${escapeIcs(event.location)}`,
-      `DESCRIPTION:${escapeIcs(`${event.title} at ${event.location}`)}`,
-      "END:VEVENT"
-    );
-  });
-  lines.push("END:VCALENDAR");
-  return lines.join("\r\n");
-};
-
-const buildGoogleCsv = events => {
-  const headers = ["Subject","Start Date","Start Time","End Date","End Time","Description","Location"];
-  const rows = events.map(event => [
-    event.title,
-    formatCsvDate(event.start),
-    formatCsvTime(event.start),
-    formatCsvDate(event.end),
-    formatCsvTime(event.end),
-    `${event.title} at ${event.location}`,
-    event.location
-  ]);
-  return [headers, ...rows].map(row => row.map(csvCell).join(",")).join("\r\n");
-};
-
-const downloadCalendarEvents = scope => {
-  const events = buildEvents(scope);
-  if (!events.length) {
-    setShareStatus("Pick at least one event first.");
-    return alert("Pick at least one event first.");
-  }
-  const format = document.getElementById("calendarFormat").value;
-  const label = scope === "all" ? "all-events" : "chosen-events";
-  if (format === "gcal") {
-    downloadBlob(buildGoogleCsv(events), `tifanii-hobby-classes-${label}.csv`, "text/csv;charset=utf-8");
-    setShareStatus("Google Calendar CSV downloaded.");
-    return;
-  }
-  downloadBlob(buildIcs(events), `tifanii-hobby-classes-${label}.ics`, "text/calendar;charset=utf-8");
-  setShareStatus("iCal file downloaded.");
+const changeCalendarMonth = delta => {
+  activeCalendarMonth = Math.max(4, Math.min(8, activeCalendarMonth + delta));
+  renderCalendar();
 };
 
 const buildShareUrl = () => {
@@ -518,6 +433,21 @@ const buildShareUrl = () => {
 const setShareStatus = message => {
   const status = document.getElementById("shareStatus");
   if (status) status.textContent = message;
+};
+
+const setPlannerView = view => {
+  const showCalendar = view === "calendar";
+  document.getElementById("cardsView").classList.toggle("view-hidden", showCalendar);
+  document.getElementById("calendarView").classList.toggle("view-hidden", !showCalendar);
+  document.querySelectorAll(".view-btn").forEach(button => {
+    const active = button.dataset.view === view;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  if (showCalendar) {
+    document.getElementById("calendarDrawer").open = true;
+    document.getElementById("calendarView").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 };
 
 const buildEmailBody = () => {
@@ -654,7 +584,6 @@ const sharePicks = () => {
 const renderAll = () => {
   renderClassList();
   renderCalendar();
-  renderMobileAgenda();
   renderSelectedSummary();
   if (activeItemId) {
     const activeItem = getItemById(activeItemId);
@@ -669,11 +598,14 @@ if (importedShare) setShareStatus("Loaded shared picks on this device.");
 
 document.getElementById("searchBox").addEventListener("input", renderAll);
 document.getElementById("areaFilter").addEventListener("change", renderAll);
+document.querySelectorAll(".view-btn").forEach(button => {
+  button.addEventListener("click", () => setPlannerView(button.dataset.view));
+});
+document.getElementById("prevMonth").addEventListener("click", () => changeCalendarMonth(-1));
+document.getElementById("nextMonth").addEventListener("click", () => changeCalendarMonth(1));
 document.getElementById("sharePicks").addEventListener("click", sharePicks);
 document.getElementById("sharePicksSummary").addEventListener("click", sharePicks);
 document.getElementById("clearAll").addEventListener("click", () => { selected.clear(); saveState(); renderAll(); syncPicksToSheet("cleared"); });
-document.getElementById("downloadAllEvents").addEventListener("click", () => downloadCalendarEvents("all"));
-document.getElementById("downloadChosenEvents").addEventListener("click", () => downloadCalendarEvents("selected"));
 document.getElementById("modalClose").addEventListener("click", closeModal);
 document.getElementById("modalDone").addEventListener("click", closeModal);
 document.getElementById("eventModal").addEventListener("click", event => {
@@ -684,6 +616,7 @@ document.getElementById("modalToggle").addEventListener("click", () => {
   if (!item) return;
   setItemSelected(item, !selected.has(item.id));
   closeModal();
+  setPlannerView("cards");
   document.getElementById("classList").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 document.addEventListener("keydown", event => {
