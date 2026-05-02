@@ -4,6 +4,7 @@ const DAY_TO_INDEX = {Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
 
 const fmtMoney = n => new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(n);
 const fmtLongDate = d => new Intl.DateTimeFormat("en-US",{weekday:"short",month:"short",day:"numeric"}).format(d);
+const fmtShortDate = d => new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric"}).format(d);
 const parseDate = s => new Date(s + "T00:00:00");
 const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
 const isoDate = d => d.toISOString().slice(0,10);
@@ -52,6 +53,8 @@ const offerings = [
 
 const STORAGE_KEY = "mentor-summer-art-planner-state";
 const SHARE_PARAM = "picks";
+const EMAIL_TO = "reedhmartin@gmail.com";
+const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwWnItUGZrBwrGZWveWt0xplJk31U0oj8yE9MOIJ_-eDLEdRBfYaderEGt96Rd4Ruja/exec";
 
 const selected = new Set();
 let pricingMode = "resident";
@@ -130,7 +133,46 @@ const cardText = item => item.sessions.length === 1
   ? `${fmtLongDate(parseDate(item.sessions[0].date))} | ${item.sessions[0].startTime} - ${item.sessions[0].endTime}`
   : `${fmtLongDate(parseDate(item.sessions[0].date))} to ${fmtLongDate(parseDate(item.sessions[item.sessions.length - 1].date))} | ${item.sessions.length} sessions`;
 
+const cardDateText = item => item.sessions.map(session => fmtShortDate(parseDate(session.date))).join(", ");
+
 const getItemById = id => offerings.find(item => item.id === id);
+
+const FAA_CODES = {
+  "faa-adult-ceramics-session-1": "VAS2624A",
+  "faa-adult-ceramics-session-2": "VAS2624B",
+  "faa-adult-clay-studio": "VAS2625",
+  "faa-painting-coffee": "VAS2631",
+  "faa-craft-sip-paper-dahlia": "VAS2651A",
+  "faa-hand-tied-rose-bouquet": "VAS2651B"
+};
+
+const signupDetails = item => {
+  if (item.area === "Fine Arts Association") {
+    return {
+      source: "Fine Arts Association",
+      code: FAA_CODES[item.id] || "Code not listed in source PDF",
+      register: "https://www.fineartsassociation.org/visual-arts/",
+      phone: "440-951-7500",
+      notes: "Use the FAA visual arts registration page. For ceramics/clay studio, expect the listed clay supply note."
+    };
+  }
+  if (item.area === "Senior") {
+    return {
+      source: "Mentor Senior Center / Mentor Parks & Recreation",
+      code: "No activity code listed in source PDF",
+      register: "https://cityofmentor.com",
+      phone: "Senior Center 440-974-5725",
+      notes: "Senior Center membership is required for Senior Center activities. Resident registration began April 6, 2026; non-resident registration began April 7, 2026."
+    };
+  }
+  return {
+    source: "Mentor Parks & Recreation / Wildwood Cultural Center",
+    code: "No activity code listed in source PDF",
+    register: "https://cityofmentor.com",
+    phone: "Wildwood 440-974-5735 or Recreation 440-974-5720",
+    notes: "Resident registration began April 6, 2026; non-resident registration began April 7, 2026."
+  };
+};
 
 const formatSessionLine = session => {
   const date = parseDate(session.date);
@@ -180,12 +222,13 @@ const closeModal = () => {
   const modal = document.getElementById("eventModal");
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
+  activeItemId = null;
 };
 
-const buildEvents = () => {
+const buildEvents = (scope = "selected") => {
   const events = [];
   for (const item of offerings) {
-    if (!selected.has(item.id)) continue;
+    if (scope !== "all" && !selected.has(item.id)) continue;
     const fee = pricingMode === "resident" ? item.residentFee : item.nonResidentFee;
     const extra = pricingMode === "resident" ? item.extraResident : item.extraNonResident;
     for (const session of item.sessions) {
@@ -258,6 +301,7 @@ const renderClassList = () => {
           <input type="checkbox" ${selected.has(item.id) ? "checked" : ""} aria-label="Select ${item.title}" />
           <div>
             <h3 class="class-title">${item.title}</h3>
+            <div class="card-date">${cardDateText(item)}</div>
             <div class="class-meta"><span class="series-badge">${item.group}</span><span class="meta-badge">${item.age}</span><span class="meta-badge">${item.area}</span></div>
           </div>
         </div>
@@ -277,12 +321,14 @@ const renderClassList = () => {
       const selectBtn = card.querySelector(".select-btn");
       const detailsBtn = card.querySelector(".details-btn");
       checkbox.addEventListener("click", event => event.stopPropagation());
-      checkbox.addEventListener("change", () => { if (checkbox.checked) selected.add(item.id); else selected.delete(item.id); saveState(); renderAll(); if (activeItemId === item.id) syncModalSelection(item); });
+      checkbox.addEventListener("change", () => {
+        setItemSelected(item, checkbox.checked);
+        if (activeItemId === item.id) syncModalSelection(item);
+      });
       selectBtn.addEventListener("click", event => {
         event.stopPropagation();
-        if (selected.has(item.id)) selected.delete(item.id); else selected.add(item.id);
-        saveState();
-        renderAll();
+        const shouldSelect = !selected.has(item.id);
+        setItemSelected(item, shouldSelect);
         if (activeItemId === item.id) syncModalSelection(item);
       });
       detailsBtn.addEventListener("click", event => {
@@ -392,6 +438,75 @@ const renderMobileAgenda = () => {
   });
 };
 
+const escapeIcs = text => String(text).replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
+const formatIcsDate = date => {
+  const pad = n => String(n).padStart(2,"0");
+  return `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+};
+const csvCell = value => `"${String(value).replace(/"/g, '""')}"`;
+const formatCsvDate = date => `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`;
+const formatCsvTime = date => date.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+
+const downloadBlob = (content, filename, type) => {
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const buildIcs = events => {
+  const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Codex//Tifanii Hobby Classes//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
+  events.forEach((event, idx) => {
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${event.id}-${idx}@codex`,
+      `DTSTAMP:${formatIcsDate(new Date())}`,
+      `SUMMARY:${escapeIcs(event.title)}`,
+      `DTSTART:${formatIcsDate(event.start)}`,
+      `DTEND:${formatIcsDate(event.end)}`,
+      `LOCATION:${escapeIcs(event.location)}`,
+      `DESCRIPTION:${escapeIcs(`${event.title} at ${event.location}`)}`,
+      "END:VEVENT"
+    );
+  });
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+};
+
+const buildGoogleCsv = events => {
+  const headers = ["Subject","Start Date","Start Time","End Date","End Time","Description","Location"];
+  const rows = events.map(event => [
+    event.title,
+    formatCsvDate(event.start),
+    formatCsvTime(event.start),
+    formatCsvDate(event.end),
+    formatCsvTime(event.end),
+    `${event.title} at ${event.location}`,
+    event.location
+  ]);
+  return [headers, ...rows].map(row => row.map(csvCell).join(",")).join("\r\n");
+};
+
+const downloadCalendarEvents = scope => {
+  const events = buildEvents(scope);
+  if (!events.length) {
+    setShareStatus("Pick at least one event first.");
+    return alert("Pick at least one event first.");
+  }
+  const format = document.getElementById("calendarFormat").value;
+  const label = scope === "all" ? "all-events" : "chosen-events";
+  if (format === "gcal") {
+    downloadBlob(buildGoogleCsv(events), `tifanii-hobby-classes-${label}.csv`, "text/csv;charset=utf-8");
+    setShareStatus("Google Calendar CSV downloaded.");
+    return;
+  }
+  downloadBlob(buildIcs(events), `tifanii-hobby-classes-${label}.ics`, "text/calendar;charset=utf-8");
+  setShareStatus("iCal file downloaded.");
+};
+
 const buildShareUrl = () => {
   const url = new URL(window.location.href);
   url.search = "";
@@ -405,30 +520,122 @@ const setShareStatus = message => {
   if (status) status.textContent = message;
 };
 
-const sharePicks = async () => {
+const buildEmailBody = () => {
+  const items = offerings.filter(item => selected.has(item.id));
+  const modeLabel = pricingMode === "resident" ? "Resident" : "Non-resident";
+  const lines = [
+    "Tifanii's selected hobby classes",
+    "",
+    `Pricing mode: ${modeLabel}`,
+    `Open selected picks: ${buildShareUrl()}`,
+    "",
+    "Sign-up checklist",
+    ""
+  ];
+  items.forEach((item, index) => {
+    const details = signupDetails(item);
+    const baseFee = pricingMode === "resident" ? item.residentFee : item.nonResidentFee;
+    const extraFee = pricingMode === "resident" ? item.extraResident : item.extraNonResident;
+    lines.push(
+      `${index + 1}. ${item.title}`,
+      `Category: ${item.group}`,
+      `Sign-up source: ${details.source}`,
+      `Class/activity code: ${details.code}`,
+      `Register online: ${details.register}`,
+      `Call: ${details.phone}`,
+      `Dates/times: ${item.sessions.map(formatSessionLine).join("; ")}`,
+      `Location: ${item.location}`,
+      `Instructor: ${item.instructor}`,
+      `Age: ${item.age}`,
+      `Fee: ${modeLabel} ${fmtMoney(baseFee)}`,
+      `Extra fee/note: ${item.extraLabel ? `${item.extraLabel} - ${fmtMoney(extraFee)}` : "No extra fee listed"}`,
+      `Estimated total: ${fmtMoney(baseFee + extraFee)}`,
+      `Sign-up note: ${details.notes}`,
+      ""
+    );
+  });
+  lines.push("Generated from HobbieClassPicker.");
+  return lines.join("\n");
+};
+
+const selectedSnapshot = (action, changedItem) => {
+  const items = offerings.filter(item => selected.has(item.id));
+  return {
+    action,
+    changedId: changedItem ? changedItem.id : "",
+    changedTitle: changedItem ? changedItem.title : "",
+    updatedAt: new Date().toISOString(),
+    pricingMode,
+    shareUrl: buildShareUrl(),
+    selectedCount: items.length,
+    selectedEvents: items.reduce((sum, item) => sum + item.sessions.length, 0),
+    picks: items.map(item => {
+      const details = signupDetails(item);
+      const baseFee = pricingMode === "resident" ? item.residentFee : item.nonResidentFee;
+      const extraFee = pricingMode === "resident" ? item.extraResident : item.extraNonResident;
+      return {
+        id: item.id,
+        title: item.title,
+        group: item.group,
+        area: item.area,
+        age: item.age,
+        location: item.location,
+        instructor: item.instructor,
+        schedule: item.sessions.map(formatSessionLine).join("; "),
+        baseFee,
+        extraFee,
+        estimatedTotal: baseFee + extraFee,
+        extraLabel: item.extraLabel || "No extra fee listed",
+        signupSource: details.source,
+        signupCode: details.code,
+        registerOnline: details.register,
+        phone: details.phone,
+        signupNotes: details.notes
+      };
+    })
+  };
+};
+
+const syncPicksToSheet = (action, changedItem = null) => {
+  if (!GOOGLE_SHEET_WEB_APP_URL) return;
+  const payload = selectedSnapshot(action, changedItem);
+  const body = JSON.stringify(payload);
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+      if (navigator.sendBeacon(GOOGLE_SHEET_WEB_APP_URL, blob)) {
+        setShareStatus("Google Sheet updated.");
+        return;
+      }
+    }
+    fetch(GOOGLE_SHEET_WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body
+    });
+    setShareStatus("Google Sheet update sent.");
+  } catch {
+    setShareStatus("Could not update Google Sheet from this device.");
+  }
+};
+
+const setItemSelected = (item, shouldSelect, action) => {
+  if (shouldSelect) selected.add(item.id); else selected.delete(item.id);
+  saveState();
+  renderAll();
+  syncPicksToSheet(action || (shouldSelect ? "added" : "removed"), item);
+};
+
+const sharePicks = () => {
   if (!selected.size) {
     setShareStatus("Pick at least one event first.");
     return alert("Pick at least one event first.");
   }
-  const url = buildShareUrl();
-  const title = "Event picks";
-  const text = `Here are the selected events: ${url}`;
-  try {
-    if (navigator.share) {
-      await navigator.share({ title, text, url });
-      setShareStatus("Share sheet opened with the selected picks.");
-      return;
-    }
-  } catch {
-    // If the share sheet is cancelled or unavailable, fall back to copying.
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    setShareStatus("Picks link copied. Send it by text or email.");
-  } catch {
-    window.prompt("Copy this picks link:", url);
-    setShareStatus("Copy the picks link and send it by text or email.");
-  }
+  const subject = encodeURIComponent("Tifanii's hobby class picks");
+  const body = encodeURIComponent(buildEmailBody());
+  window.location.href = `mailto:${EMAIL_TO}?subject=${subject}&body=${body}`;
+  setShareStatus("Email draft opened with the sign-up checklist.");
 };
 
 const renderAll = () => {
@@ -451,19 +658,9 @@ document.getElementById("searchBox").addEventListener("input", renderAll);
 document.getElementById("areaFilter").addEventListener("change", renderAll);
 document.getElementById("sharePicks").addEventListener("click", sharePicks);
 document.getElementById("sharePicksSummary").addEventListener("click", sharePicks);
-document.getElementById("clearAll").addEventListener("click", () => { selected.clear(); saveState(); renderAll(); });
-document.getElementById("selectVisible").addEventListener("click", () => {
-  const query = document.getElementById("searchBox").value.trim().toLowerCase();
-  const area = document.getElementById("areaFilter").value;
-  offerings.forEach(item => {
-    const hay = [item.title,item.group,item.location,item.instructor,item.description,item.age].join(" ").toLowerCase();
-    const matchesQuery = !query || hay.includes(query);
-    const matchesArea = area === "all" || (area === "wildwood" && item.area === "Wildwood") || (area === "senior" && item.area === "Senior") || (area === "faa" && item.area === "Fine Arts Association");
-    if (matchesQuery && matchesArea) selected.add(item.id);
-  });
-  saveState();
-  renderAll();
-});
+document.getElementById("clearAll").addEventListener("click", () => { selected.clear(); saveState(); renderAll(); syncPicksToSheet("cleared"); });
+document.getElementById("downloadAllEvents").addEventListener("click", () => downloadCalendarEvents("all"));
+document.getElementById("downloadChosenEvents").addEventListener("click", () => downloadCalendarEvents("selected"));
 document.getElementById("modalClose").addEventListener("click", closeModal);
 document.getElementById("modalDone").addEventListener("click", closeModal);
 document.getElementById("eventModal").addEventListener("click", event => {
@@ -472,10 +669,9 @@ document.getElementById("eventModal").addEventListener("click", event => {
 document.getElementById("modalToggle").addEventListener("click", () => {
   const item = getItemById(activeItemId);
   if (!item) return;
-  if (selected.has(item.id)) selected.delete(item.id); else selected.add(item.id);
-  saveState();
-  renderAll();
-  syncModalSelection(item);
+  setItemSelected(item, !selected.has(item.id));
+  closeModal();
+  document.getElementById("classList").scrollIntoView({ behavior: "smooth", block: "start" });
 });
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") closeModal();
